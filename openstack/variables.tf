@@ -55,5 +55,7 @@ variable "vms" {
     image_name = string
     flavor_name = string
     key_pair   = optional(string)
+    ip         = optional(string)
+    port_id    = optional(string)
   }))
 }

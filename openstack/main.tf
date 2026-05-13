@@ -21,4 +21,5 @@ module "vm" {
   vms                 = var.vms
   network_id          = module.network.network_id
   security_group_name = module.security_group.sg_name
+  security_group_id   = module.security_group.sg_id
 }

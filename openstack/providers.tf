@@ -15,4 +15,5 @@ provider "openstack" {
   user_name   = var.user_name
   password    = var.password
   domain_name = var.domain_name
+  #insecure   = true
 }
