@@ -25,7 +25,7 @@ resource "openstack_compute_instance_v2" "vm" {
   for_each = var.vms
 
   name            = each.key
-  image_name      = each.value.image_name
+  image_name      = each.value.volume_id == null ? each.value.image_name : null
   flavor_name     = each.value.flavor_name
   key_pair        = each.value.key_pair
   security_groups = (each.value.ip == null && each.value.port_id == null && var.security_group_name != null) ? [var.security_group_name] : []
@@ -34,5 +34,17 @@ resource "openstack_compute_instance_v2" "vm" {
     port = each.value.ip != null ? openstack_networking_port_v2.vm_port[each.key].id : (each.value.port_id != null ? each.value.port_id : null)
     uuid = (each.value.ip == null && each.value.port_id == null) ? var.network_id : null
   }
+
+  dynamic "block_device" {
+    for_each = each.value.volume_id != null ? [each.value.volume_id] : []
+    content {
+      uuid                  = block_device.value
+      source_type           = "volume"
+      destination_type      = "volume"
+      boot_index            = 0
+      delete_on_termination = false
+    }
+  }
 }
+
 

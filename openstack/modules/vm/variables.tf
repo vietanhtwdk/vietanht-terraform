@@ -1,12 +1,14 @@
 variable "vms" {
   type = map(object({
-    image_name = string
+    image_name  = optional(string)
     flavor_name = string
-    key_pair   = optional(string)
-    ip         = optional(string)
-    port_id    = optional(string)
+    key_pair    = optional(string)
+    ip          = optional(string)
+    port_id     = optional(string)
+    volume_id   = optional(string)
   }))
 }
+
 
 variable "network_id" {
   type = string

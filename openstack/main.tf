@@ -15,6 +15,12 @@ module "security_group" {
   sg_name = "${var.network_config.name}-sg"
 }
 
+module "volume" {
+  source = "./modules/volume"
+
+  volumes = var.volumes
+}
+
 module "vm" {
   source = "./modules/vm"
 
@@ -23,3 +29,4 @@ module "vm" {
   security_group_name = module.security_group.sg_name
   security_group_id   = module.security_group.sg_id
 }
+

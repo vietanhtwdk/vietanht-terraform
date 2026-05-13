@@ -49,13 +49,24 @@ variable "create_security_group" {
 }
 
 
+variable "volumes" {
+  description = "Map of volumes to create"
+  type = map(object({
+    size       = number
+    image_name = optional(string)
+  }))
+  default = {}
+}
+
 variable "vms" {
   description = "List of VMs to create"
   type = map(object({
-    image_name = string
+    image_name  = optional(string)
     flavor_name = string
-    key_pair   = optional(string)
-    ip         = optional(string)
-    port_id    = optional(string)
+    key_pair    = optional(string)
+    ip          = optional(string)
+    port_id     = optional(string)
+    volume_id   = optional(string)
   }))
 }
+
