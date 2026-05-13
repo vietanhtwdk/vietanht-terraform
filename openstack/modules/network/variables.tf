@@ -3,13 +3,22 @@ variable "network_name" {
 }
 
 variable "cidr" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "gateway_ip" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "external_network_id" {
-  type = string
+  type    = string
+  default = null
 }
+
+variable "network_id" {
+  type    = string
+  default = null
+}
+

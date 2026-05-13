@@ -35,17 +35,25 @@ variable "network_config" {
   description = "Network configuration"
   type = object({
     name         = string
-    cidr         = string
-    gateway_ip   = string
-    external_net = string
+    cidr         = optional(string)
+    gateway_ip   = optional(string)
+    external_net = optional(string)
+    id           = optional(string)
   })
 }
+
+variable "create_security_group" {
+  description = "Whether to create a new security group"
+  type        = bool
+  default     = true
+}
+
 
 variable "vms" {
   description = "List of VMs to create"
   type = map(object({
     image_name = string
     flavor_name = string
-    key_pair   = string
+    key_pair   = optional(string)
   }))
 }

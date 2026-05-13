@@ -1,7 +1,8 @@
 output "sg_name" {
-  value = openstack_networking_secgroup_v2.sg.name
+  value = var.enabled ? openstack_networking_secgroup_v2.sg[0].name : null
 }
 
 output "sg_id" {
-  value = openstack_networking_secgroup_v2.sg.id
+  value = var.enabled ? openstack_networking_secgroup_v2.sg[0].id : null
 }
+
