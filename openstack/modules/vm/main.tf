@@ -18,7 +18,7 @@ resource "openstack_networking_port_v2" "vm_port" {
     ip_address = each.value.ip
   }
 
-  security_group_ids = var.security_group_id != null ? [var.security_group_id] : []
+  security_group_ids = var.security_group_id != null ? [var.security_group_id] : null
 }
 
 resource "openstack_compute_instance_v2" "vm" {
@@ -28,7 +28,7 @@ resource "openstack_compute_instance_v2" "vm" {
   image_name      = each.value.volume_id == null ? each.value.image_name : null
   flavor_name     = each.value.flavor_name
   key_pair        = each.value.key_pair
-  security_groups = (each.value.ip == null && each.value.port_id == null && var.security_group_name != null) ? [var.security_group_name] : []
+  security_groups = (each.value.ip == null && each.value.port_id == null && var.security_group_name != null) ? [var.security_group_name] : null
 
   network {
     port = each.value.ip != null ? openstack_networking_port_v2.vm_port[each.key].id : (each.value.port_id != null ? each.value.port_id : null)
