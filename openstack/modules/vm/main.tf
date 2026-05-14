@@ -45,6 +45,17 @@ resource "openstack_compute_instance_v2" "vm" {
       delete_on_termination = false
     }
   }
+
+  dynamic "block_device" {
+    for_each = each.value.extra_volume_ids != null ? each.value.extra_volume_ids : []
+    content {
+      uuid                  = block_device.value
+      source_type           = "volume"
+      destination_type      = "volume"
+      boot_index            = -1
+      delete_on_termination = false
+    }
+  }
 }
 
 

@@ -41,6 +41,10 @@ module "vm" {
       v.volume_size != null ? module.volume.volume_ids["${k}-vol"] :
       v.volume_id
     )
+    extra_volume_ids = v.extra_volumes != null ? [
+      for ev in v.extra_volumes :
+      ev.volume_name != null ? module.volume.volume_ids[ev.volume_name] : ev.volume_id
+    ] : null
   }) }
   network_id          = module.network.network_id
   security_group_name = module.security_group.sg_name
