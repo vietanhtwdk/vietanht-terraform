@@ -69,6 +69,10 @@ variable "vms" {
     volume_id   = optional(string)
     volume_name = optional(string)
     volume_size = optional(number)
+    extra_volumes = optional(list(object({
+      volume_name = optional(string)
+      volume_id   = optional(string)
+    })))
   }))
 }
 
