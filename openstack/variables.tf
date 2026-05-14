@@ -67,6 +67,7 @@ variable "vms" {
     ip          = optional(string)
     port_id     = optional(string)
     volume_id   = optional(string)
+    volume_name = optional(string)
   }))
 }
 

@@ -25,7 +25,8 @@ module "test_setup" {
   vms = {
     "test-vm" = {
       flavor_name = "m1.small"
-      volume_id   = "mock-volume-id" # In a real test, this could be linked to module.volume.volume_ids["test-vol"]
+      volume_name = "test-vol"
     }
   }
 }
+

@@ -24,9 +24,12 @@ module "volume" {
 module "vm" {
   source = "./modules/vm"
 
-  vms                 = var.vms
+  vms = { for k, v in var.vms : k => merge(v, {
+    volume_id = v.volume_name != null ? module.volume.volume_ids[v.volume_name] : v.volume_id
+  }) }
   network_id          = module.network.network_id
   security_group_name = module.security_group.sg_name
   security_group_id   = module.security_group.sg_id
 }
+
 
