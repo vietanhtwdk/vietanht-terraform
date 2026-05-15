@@ -63,7 +63,7 @@ The root `main.tf` chains modules in this order:
 
 ### Multi-Network Support
 
-`var.networks` is a map; the root calls `module "networks"` with `for_each`. Each network entry can either create a new network or reference an existing one (`id` provided). VMs reference networks by label via their `ports[*].network_name`.
+`var.networks` is a map; the root calls `module "networks"` with `for_each`. Each network entry can either create a new network or reference an existing one (`id` provided — `name` is optional in that case, matching the SG import pattern). VMs reference networks by label via `ports[*].network_name`. A port can also set `network_id` directly to bypass `var.networks` entirely, the same way `security_group_ids` bypasses `var.security_groups`.
 
 ### Multi-Security-Group Support
 
@@ -99,11 +99,11 @@ Port resources always receive `security_group_ids` from the VM's `security_group
 ```hcl
 networks = {
   "frontend" = {
-    name         = "frontend-net"   # required
+    name         = "frontend-net"   # optional; required only when creating
     cidr         = "10.0.1.0/24"   # optional; needed when creating
     gateway_ip   = "10.0.1.1"      # optional
     external_net = "ext-net-id"    # optional; for router gateway
-    id           = "uuid..."       # optional; use existing network
+    id           = "uuid..."       # optional; set to import existing (name not needed)
   }
 }
 ```
@@ -136,7 +136,8 @@ vms = {
     security_group_names = ["web-sg"]        # optional; VM-level default for all ports
     security_group_ids   = ["uuid..."]       # optional; direct UUIDs applied to all ports
     ports = [                                # required; at least one entry
-      { network_name = "frontend" },         # inherits VM-level SGs; DHCP IP
+      { network_name = "frontend" },         # resolved via var.networks; DHCP IP
+      { network_id = "uuid..." },            # direct network UUID; bypasses var.networks
       { network_name = "backend", ip = "10.0.2.5",
         security_group_names = ["db-sg"],    # overrides VM-level names for this port
         security_group_ids   = ["uuid..."],  # extra direct UUID for this port only

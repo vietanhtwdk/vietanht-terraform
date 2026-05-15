@@ -16,6 +16,10 @@ networks = {
     gateway_ip   = "10.0.4.1"
     external_net = "external-net-id"
   }
+  # Import existing network by ID — name is not required
+  "prod-mgmt" = {
+    id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
 }
 
 security_groups = {
@@ -75,6 +79,10 @@ vms = {
         ip                   = "10.0.4.10"
         security_group_names = ["prod-db-sg"]
         security_group_ids   = ["yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]
+      },
+      {
+        # Direct network UUID — bypasses var.networks entirely, like security_group_ids
+        network_id = "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
       },
     ]
   }

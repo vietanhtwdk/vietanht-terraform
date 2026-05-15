@@ -32,9 +32,9 @@ variable "domain_name" {
 }
 
 variable "networks" {
-  description = "Map of networks to create or reference. Key is used as the network label referenced in VM port entries."
+  description = "Map of networks to create or reference. Key is used as the network label referenced in VM port entries. Set id to reference an existing network without creating it (name is optional in that case)."
   type = map(object({
-    name         = string
+    name         = optional(string)
     cidr         = optional(string)
     gateway_ip   = optional(string)
     external_net = optional(string)
@@ -86,6 +86,7 @@ variable "vms" {
     security_group_ids   = optional(list(string), [])
     ports = list(object({
       network_name         = optional(string)
+      network_id           = optional(string)
       ip                   = optional(string)
       port_id              = optional(string)
       security_group_names = optional(list(string))
