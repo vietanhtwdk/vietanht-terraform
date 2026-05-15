@@ -60,6 +60,19 @@ variable "security_groups" {
   default = {}
 }
 
+variable "ports" {
+  description = "Map of ports to create or reference. Key becomes the port label referenced in VM port entries. Set id to import an existing port without creating it."
+  type = map(object({
+    id                   = optional(string)
+    network_name         = optional(string)
+    network_id           = optional(string)
+    ip                   = optional(string)
+    security_group_names = optional(list(string), [])
+    security_group_ids   = optional(list(string), [])
+  }))
+  default = {}
+}
+
 variable "volumes" {
   description = "Map of volumes to create"
   type = map(object({
@@ -85,6 +98,7 @@ variable "vms" {
     security_group_names = optional(list(string), [])
     security_group_ids   = optional(list(string), [])
     ports = list(object({
+      port_name            = optional(string)
       network_name         = optional(string)
       network_id           = optional(string)
       ip                   = optional(string)

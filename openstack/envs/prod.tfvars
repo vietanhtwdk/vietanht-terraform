@@ -42,6 +42,20 @@ security_groups = {
   }
 }
 
+# Named ports: create or import, then reference by label in VM port entries
+ports = {
+  # Import an existing port (e.g. pre-provisioned with a reserved IP)
+  "db-reserved-port" = {
+    id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+  }
+  # Create a named port outside the VM (useful for floating-IP association, etc.)
+  "lb-frontend-port" = {
+    network_name         = "prod-frontend"
+    ip                   = "10.0.3.100"
+    security_group_names = ["prod-web-sg"]
+  }
+}
+
 vms = {
   "web-prod-1" = {
     image_name           = "Ubuntu 22.04"
@@ -56,16 +70,16 @@ vms = {
     image_name           = "Ubuntu 22.04"
     flavor_name          = "m1.large"
     key_pair             = "prod-key"
-    security_group_names = ["prod-web-sg"]
     ports = [
-      { network_name = "prod-frontend" }
+      # Reference named port by label — uses the pre-created lb-frontend-port
+      { port_name = "lb-frontend-port" }
     ]
   },
   "db-prod-master" = {
     image_name           = "Ubuntu 22.04"
     flavor_name          = "m1.xlarge"
     key_pair             = "prod-key"
-    # VM-level direct UUID: applied to every port on this VM
+    # VM-level direct UUID: applied to every inline port on this VM
     security_group_ids   = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
     ports = [
       {
@@ -74,15 +88,8 @@ vms = {
         security_group_names = ["prod-web-sg", "prod-monitoring-sg"]
       },
       {
-        # DB port: db SG (overrides VM-level names) + extra direct ID for this port only
-        network_name         = "prod-backend"
-        ip                   = "10.0.4.10"
-        security_group_names = ["prod-db-sg"]
-        security_group_ids   = ["yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]
-      },
-      {
-        # Direct network UUID — bypasses var.networks entirely, like security_group_ids
-        network_id = "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
+        # Use imported named port for the DB NIC (pre-reserved IP, externally managed)
+        port_name = "db-reserved-port"
       },
     ]
   }

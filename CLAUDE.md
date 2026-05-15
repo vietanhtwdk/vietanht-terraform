@@ -94,6 +94,25 @@ Port resources always receive `security_group_ids` from the VM's `security_group
 
 ## Key Variable Shapes
 
+### `ports` map (root variable)
+
+```hcl
+ports = {
+  "reserved-port" = {
+    id = "uuid..."                       # import existing port; all other fields ignored
+  }
+  "lb-port" = {
+    network_name         = "frontend"    # resolved via var.networks
+    network_id           = "uuid..."     # or direct UUID
+    ip                   = "10.0.1.100" # optional fixed IP
+    security_group_names = ["web-sg"]   # keys from var.security_groups
+    security_group_ids   = ["uuid..."]  # or direct UUIDs
+  }
+}
+```
+
+VMs reference named ports by label via `port_name` in their `ports` list. When `port_name` (or `port_id`) is set, no new port resource is created by the vm module.
+
 ### `networks` map (root variable)
 
 ```hcl
@@ -136,6 +155,7 @@ vms = {
     security_group_names = ["web-sg"]        # optional; VM-level default for all ports
     security_group_ids   = ["uuid..."]       # optional; direct UUIDs applied to all ports
     ports = [                                # required; at least one entry
+      { port_name = "lb-port" },             # reference named port from var.ports
       { network_name = "frontend" },         # resolved via var.networks; DHCP IP
       { network_id = "uuid..." },            # direct network UUID; bypasses var.networks
       { network_name = "backend", ip = "10.0.2.5",

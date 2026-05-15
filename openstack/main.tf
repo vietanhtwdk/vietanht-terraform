@@ -17,6 +17,26 @@ module "security_group" {
 
 locals {
   network_ids = { for k, v in module.networks : k => v.network_id }
+}
+
+module "ports" {
+  source = "./modules/ports"
+
+  ports = {
+    for k, v in var.ports : k => {
+      id         = v.id
+      network_id = v.network_name != null ? local.network_ids[v.network_name] : v.network_id
+      ip         = v.ip
+      security_group_ids = concat(
+        [for name in v.security_group_names : module.security_group.security_group_ids[name]],
+        v.security_group_ids,
+      )
+    }
+  }
+}
+
+locals {
+  port_ids = module.ports.port_ids
 
   auto_volumes = {
     for k, v in var.vms : "${k}-vol" => {
@@ -36,8 +56,12 @@ locals {
             p.network_name != null ? local.network_ids[p.network_name] :
             null
           )
-          ip         = p.ip
-          port_id    = p.port_id
+          ip      = p.ip
+          port_id = (
+            p.port_id != null ? p.port_id :
+            p.port_name != null ? local.port_ids[p.port_name] :
+            null
+          )
           security_group_ids = concat(
             [
               for name in (p.security_group_names != null ? p.security_group_names : vm.security_group_names) :
