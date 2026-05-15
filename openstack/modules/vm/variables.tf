@@ -6,6 +6,7 @@ variable "vms" {
     volume_id        = optional(string)
     extra_volume_ids = optional(list(string))
     ports = list(object({
+      name               = optional(string)
       network_id         = optional(string)
       ip                 = optional(string)
       port_id            = optional(string)

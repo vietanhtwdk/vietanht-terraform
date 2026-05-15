@@ -51,6 +51,7 @@ locals {
     for vm_name, vm in var.vms : vm_name => merge(vm, {
       ports = [
         for p in vm.ports : {
+          name = p.name
           network_id = (
             p.network_id != null ? p.network_id :
             p.network_name != null ? local.network_ids[p.network_name] :

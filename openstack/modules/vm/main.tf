@@ -14,6 +14,7 @@ locals {
       for vm_name, vm in var.vms : [
         for idx, p in vm.ports : {
           key        = "${vm_name}-port-${idx}"
+          name       = p.name != null ? p.name : "${vm_name}-port-${idx}"
           vm_name    = vm_name
           idx        = tostring(idx)
           network_id = p.network_id
@@ -28,7 +29,7 @@ locals {
 resource "openstack_networking_port_v2" "vm_port" {
   for_each = local.ports_to_create
 
-  name           = each.key
+  name           = each.value.name
   network_id     = each.value.network_id
   admin_state_up = true
 
