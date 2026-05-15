@@ -10,9 +10,19 @@ module "test_setup" {
   user_name   = "admin"
   password    = "secret"
 
-  network_config = {
-    name = "test-net"
-    cidr = "10.0.0.0/24"
+  networks = {
+    "test-net" = {
+      name = "test-net"
+      cidr = "10.0.0.0/24"
+    }
+  }
+
+  security_groups = {
+    "test-sg" = {
+      rules = [
+        { direction = "ingress", protocol = "tcp", port_min = 22, port_max = 22, remote_ip_prefix = "0.0.0.0/0" },
+      ]
+    }
   }
 
   volumes = {
@@ -24,9 +34,12 @@ module "test_setup" {
 
   vms = {
     "test-vm" = {
-      flavor_name = "m1.small"
-      volume_name = "test-vol"
+      flavor_name          = "m1.small"
+      volume_name          = "test-vol"
+      security_group_names = ["test-sg"]
+      ports = [
+        { network_name = "test-net" }
+      ]
     }
   }
 }
-
