@@ -18,7 +18,7 @@ locals {
           idx        = tostring(idx)
           network_id = p.network_id
           ip         = p.ip
-          sg_ids     = vm.security_group_ids
+          sg_ids     = p.security_group_ids
         } if p.port_id == null
       ]
     ]) : item.key => item

@@ -67,7 +67,15 @@ The root `main.tf` chains modules in this order:
 
 ### Multi-Security-Group Support
 
-`var.security_groups` is a map of SGs, each with a `rules` list. SGs are created unless `id` is set (pre-existing SG — rules are ignored for those). VMs list which SGs to attach via `security_group_names`. All SG assignment happens at the port level (`security_group_ids` on `openstack_networking_port_v2`), not at the instance level.
+`var.security_groups` is a map of SGs, each with a `rules` list. SGs are created unless `id` is set (pre-existing SG — rules are ignored for those).
+
+All SG assignment happens at the port level (`security_group_ids` on `openstack_networking_port_v2`). Each port's effective SG IDs are computed in the root `vms_resolved` local as:
+
+1. Resolved IDs from `port.security_group_names` (if set, overrides VM-level) **or** `vm.security_group_names`
+2. Plus `vm.security_group_ids` — direct UUIDs applied to every port on this VM
+3. Plus `port.security_group_ids` — direct UUIDs for this port only
+
+`security_group_ids` at either level lets you reference SGs that exist outside `var.security_groups` without declaring them in the map.
 
 ### Smart Volume Handling (root main.tf locals)
 
@@ -125,11 +133,15 @@ vms = {
     key_pair             = "my-key"          # optional
     volume_id            = "uuid..."         # optional; boot from existing volume
     volume_size          = 20                # optional shorthand; auto-creates a boot volume
-    security_group_names = ["web-sg"]        # optional; keys from var.security_groups
+    security_group_names = ["web-sg"]        # optional; VM-level default for all ports
+    security_group_ids   = ["uuid..."]       # optional; direct UUIDs applied to all ports
     ports = [                                # required; at least one entry
-      { network_name = "frontend" },         # DHCP IP on named network
-      { network_name = "backend", ip = "10.0.2.5" },  # fixed IP
-      { port_id = "uuid..." },               # pre-existing port
+      { network_name = "frontend" },         # inherits VM-level SGs; DHCP IP
+      { network_name = "backend", ip = "10.0.2.5",
+        security_group_names = ["db-sg"],    # overrides VM-level names for this port
+        security_group_ids   = ["uuid..."],  # extra direct UUID for this port only
+      },
+      { port_id = "uuid..." },               # pre-existing port; no port resource created
     ]
     extra_volumes = [                        # optional; additional block devices
       { volume_name = "data-vol" }

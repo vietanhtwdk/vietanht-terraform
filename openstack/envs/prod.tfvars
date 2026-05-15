@@ -32,6 +32,10 @@ security_groups = {
       { direction = "ingress", protocol = "tcp", port_min = 5432, port_max = 5432, remote_ip_prefix = "10.0.4.0/24" },
     ]
   }
+  # Import an existing SG (managed externally) — no rules block needed
+  "prod-monitoring-sg" = {
+    id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
 }
 
 vms = {
@@ -57,10 +61,21 @@ vms = {
     image_name           = "Ubuntu 22.04"
     flavor_name          = "m1.xlarge"
     key_pair             = "prod-key"
-    security_group_names = ["prod-db-sg"]
+    # VM-level direct UUID: applied to every port on this VM
+    security_group_ids   = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
     ports = [
-      { network_name = "prod-frontend" },
-      { network_name = "prod-backend", ip = "10.0.4.10" },
+      {
+        # Front-facing port: web SG + monitoring SG (named) + VM-level direct ID
+        network_name         = "prod-frontend"
+        security_group_names = ["prod-web-sg", "prod-monitoring-sg"]
+      },
+      {
+        # DB port: db SG (overrides VM-level names) + extra direct ID for this port only
+        network_name         = "prod-backend"
+        ip                   = "10.0.4.10"
+        security_group_names = ["prod-db-sg"]
+        security_group_ids   = ["yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]
+      },
     ]
   }
 }

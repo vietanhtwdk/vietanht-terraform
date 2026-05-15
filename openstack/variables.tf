@@ -83,10 +83,13 @@ variable "vms" {
       volume_id   = optional(string)
     })))
     security_group_names = optional(list(string), [])
+    security_group_ids   = optional(list(string), [])
     ports = list(object({
-      network_name = optional(string)
-      ip           = optional(string)
-      port_id      = optional(string)
+      network_name         = optional(string)
+      ip                   = optional(string)
+      port_id              = optional(string)
+      security_group_names = optional(list(string))
+      security_group_ids   = optional(list(string), [])
     }))
   }))
 }

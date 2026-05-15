@@ -34,11 +34,15 @@ locals {
           network_id = p.network_name != null ? local.network_ids[p.network_name] : null
           ip         = p.ip
           port_id    = p.port_id
+          security_group_ids = concat(
+            [
+              for name in (p.security_group_names != null ? p.security_group_names : vm.security_group_names) :
+              module.security_group.security_group_ids[name]
+            ],
+            vm.security_group_ids,
+            p.security_group_ids,
+          )
         }
-      ]
-      security_group_ids = [
-        for sg_name in vm.security_group_names :
-        module.security_group.security_group_ids[sg_name]
       ]
     })
   }
@@ -67,8 +71,7 @@ module "vm" {
         for ev in v.extra_volumes :
         ev.volume_name != null ? module.volume.volume_ids[ev.volume_name] : ev.volume_id
       ] : null
-      security_group_ids = v.security_group_ids
-      ports              = v.ports
+      ports = v.ports
     }
   }
 }
