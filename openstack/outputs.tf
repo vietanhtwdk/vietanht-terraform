@@ -3,7 +3,12 @@ output "vm_ips" {
   value       = module.vm.vm_ips
 }
 
-output "network_id" {
-  description = "ID of the created network"
-  value       = module.network.network_id
+output "network_ids" {
+  description = "IDs of the created/referenced networks, keyed by network label"
+  value       = { for k, v in module.networks : k => v.network_id }
+}
+
+output "port_ids" {
+  description = "IDs of the named ports, keyed by port label"
+  value       = local.port_ids
 }

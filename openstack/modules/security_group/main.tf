@@ -8,29 +8,30 @@ terraform {
 }
 
 resource "openstack_networking_secgroup_v2" "sg" {
-  count       = var.enabled ? 1 : 0
-  name        = var.sg_name
-  description = "Basic security group for VMs"
+  for_each    = { for k, v in var.security_groups : k => v if v.id == null }
+  name        = each.key
+  description = each.value.description
 }
 
-resource "openstack_networking_secgroup_rule_v2" "ssh" {
-  count             = var.enabled ? 1 : 0
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = 22
-  port_range_max    = 22
-  remote_ip_prefix  = "0.0.0.0/0"
-  security_group_id = openstack_networking_secgroup_v2.sg[0].id
+locals {
+  sg_rules = merge([
+    for sg_name, sg in var.security_groups : {
+      for idx, rule in sg.rules :
+      "${sg_name}-rule-${idx}" => merge(rule, {
+        sg_id = sg.id != null ? sg.id : openstack_networking_secgroup_v2.sg[sg_name].id
+      })
+    } if sg.id == null
+  ]...)
 }
 
-resource "openstack_networking_secgroup_rule_v2" "http" {
-  count             = var.enabled ? 1 : 0
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = 80
-  port_range_max    = 80
-  remote_ip_prefix  = "0.0.0.0/0"
-  security_group_id = openstack_networking_secgroup_v2.sg[0].id
+resource "openstack_networking_secgroup_rule_v2" "rule" {
+  for_each = local.sg_rules
+
+  direction         = each.value.direction
+  ethertype         = each.value.ethertype
+  protocol          = each.value.protocol
+  port_range_min    = each.value.port_min
+  port_range_max    = each.value.port_max
+  remote_ip_prefix  = each.value.remote_ip_prefix
+  security_group_id = each.value.sg_id
 }

@@ -7,32 +7,55 @@ terraform {
   }
 }
 
-resource "openstack_networking_port_v2" "vm_port" {
-  for_each = { for k, v in var.vms : k => v if v.ip != null }
+locals {
+  # All port entries that need a new port resource (no pre-existing port_id)
+  ports_to_create = {
+    for item in flatten([
+      for vm_name, vm in var.vms : [
+        for idx, p in vm.ports : {
+          key        = "${vm_name}-port-${idx}"
+          name       = p.name != null ? p.name : "${vm_name}-port-${idx}"
+          vm_name    = vm_name
+          idx        = tostring(idx)
+          network_id = p.network_id
+          ip         = p.ip
+          sg_ids     = p.security_group_ids
+        } if p.port_id == null
+      ]
+    ]) : item.key => item
+  }
+}
 
-  name           = "${each.key}-port"
-  network_id     = var.network_id
+resource "openstack_networking_port_v2" "vm_port" {
+  for_each = local.ports_to_create
+
+  name           = each.value.name
+  network_id     = each.value.network_id
   admin_state_up = true
 
-  fixed_ip {
-    ip_address = each.value.ip
+  dynamic "fixed_ip" {
+    for_each = each.value.ip != null ? [each.value.ip] : []
+    content {
+      ip_address = fixed_ip.value
+    }
   }
 
-  security_group_ids = var.security_group_id != null ? [var.security_group_id] : null
+  security_group_ids = length(each.value.sg_ids) > 0 ? each.value.sg_ids : null
 }
 
 resource "openstack_compute_instance_v2" "vm" {
   for_each = var.vms
 
-  name            = each.key
-  image_name      = each.value.volume_id == null ? each.value.image_name : null
-  flavor_name     = each.value.flavor_name
-  key_pair        = each.value.key_pair
-  security_groups = (each.value.ip == null && each.value.port_id == null && var.security_group_name != null) ? [var.security_group_name] : null
+  name        = each.key
+  image_name  = each.value.volume_id == null ? each.value.image_name : null
+  flavor_name = each.value.flavor_name
+  key_pair    = each.value.key_pair
 
-  network {
-    port = each.value.ip != null ? openstack_networking_port_v2.vm_port[each.key].id : (each.value.port_id != null ? each.value.port_id : null)
-    uuid = (each.value.ip == null && each.value.port_id == null) ? var.network_id : null
+  dynamic "network" {
+    for_each = { for idx, p in each.value.ports : tostring(idx) => p }
+    content {
+      port = network.value.port_id != null ? network.value.port_id : openstack_networking_port_v2.vm_port["${each.key}-port-${network.key}"].id
+    }
   }
 
   dynamic "block_device" {
@@ -57,5 +80,3 @@ resource "openstack_compute_instance_v2" "vm" {
     }
   }
 }
-
-
